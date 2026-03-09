@@ -1,0 +1,207 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Almide",
+  "scopeName": "source.almide",
+  "fileTypes": ["almd"],
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#string" },
+    { "include": "#number" },
+    { "include": "#keyword" },
+    { "include": "#type" },
+    { "include": "#function-def" },
+    { "include": "#constant" },
+    { "include": "#operator" },
+    { "include": "#identifier" }
+  ],
+  "repository": {
+    "comment": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.almide",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.almide",
+          "begin": "\\(\\*",
+          "end": "\\*\\)"
+        }
+      ]
+    },
+    "string": {
+      "patterns": [
+        {
+          "name": "string.quoted.triple.almide",
+          "begin": "r\"\"\"",
+          "end": "\"\"\"",
+          "patterns": []
+        },
+        {
+          "name": "string.quoted.triple.almide",
+          "begin": "\"\"\"",
+          "end": "\"\"\"",
+          "patterns": [
+            { "include": "#string-interpolation" },
+            { "include": "#string-escape" }
+          ]
+        },
+        {
+          "name": "string.quoted.double.raw.almide",
+          "begin": "r\"",
+          "end": "\"",
+          "patterns": []
+        },
+        {
+          "name": "string.quoted.double.almide",
+          "begin": "\"",
+          "end": "\"",
+          "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.almide" } },
+          "endCaptures": { "0": { "name": "punctuation.definition.string.end.almide" } },
+          "patterns": [
+            { "include": "#string-interpolation" },
+            { "include": "#string-escape" }
+          ]
+        }
+      ]
+    },
+    "string-interpolation": {
+      "name": "meta.interpolation.almide",
+      "begin": "\\$\\{",
+      "end": "\\}",
+      "beginCaptures": { "0": { "name": "punctuation.section.interpolation.begin.almide" } },
+      "endCaptures": { "0": { "name": "punctuation.section.interpolation.end.almide" } },
+      "contentName": "source.almide.embedded",
+      "patterns": [
+        { "include": "source.almide" }
+      ]
+    },
+    "string-escape": {
+      "name": "constant.character.escape.almide",
+      "match": "\\\\[ntr\\\\\"$]"
+    },
+    "number": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.almide",
+          "match": "\\b[0-9]+\\.[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.almide",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "name": "keyword.control.almide",
+          "match": "\\b(if|then|else|match|for|in|do|guard|try|await|return)\\b"
+        },
+        {
+          "name": "keyword.declaration.almide",
+          "match": "\\b(fn|let|var|type|trait|impl|module|import|test|deriving|newtype|effect|async|extern)\\b"
+        },
+        {
+          "name": "keyword.modifier.almide",
+          "match": "\\b(pub|local|mod|strict|unsafe)\\b"
+        },
+        {
+          "name": "keyword.operator.logical.almide",
+          "match": "\\b(and|or|not)\\b"
+        }
+      ]
+    },
+    "constant": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.almide",
+          "match": "\\b(true|false)\\b"
+        },
+        {
+          "name": "constant.language.option.almide",
+          "match": "\\b(some|none|Some|None)\\b"
+        },
+        {
+          "name": "constant.language.result.almide",
+          "match": "\\b(ok|err|Ok|Err)\\b"
+        },
+        {
+          "name": "keyword.other.todo.almide",
+          "match": "\\b(todo)\\b"
+        }
+      ]
+    },
+    "type": {
+      "patterns": [
+        {
+          "name": "support.type.builtin.almide",
+          "match": "\\b(Int|Float|String|Bool|Unit|Path|List|Map|Set|Option|Result|Json|IoError)\\b"
+        },
+        {
+          "name": "entity.name.type.almide",
+          "match": "\\b[A-Z][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    },
+    "function-def": {
+      "name": "meta.function.almide",
+      "match": "\\b(fn)\\s+([a-z_][a-zA-Z0-9_]*\\??)",
+      "captures": {
+        "1": { "name": "keyword.declaration.almide" },
+        "2": { "name": "entity.name.function.almide" }
+      }
+    },
+    "operator": {
+      "patterns": [
+        {
+          "name": "keyword.operator.arrow.almide",
+          "match": "->|=>"
+        },
+        {
+          "name": "keyword.operator.pipe.almide",
+          "match": "\\|>"
+        },
+        {
+          "name": "keyword.operator.concat.almide",
+          "match": "\\+\\+"
+        },
+        {
+          "name": "keyword.operator.range.almide",
+          "match": "\\.\\.\\.|\\.\\.\\.=|\\.\\."
+        },
+        {
+          "name": "keyword.operator.comparison.almide",
+          "match": "==|!=|<=|>="
+        },
+        {
+          "name": "keyword.operator.assignment.almide",
+          "match": "="
+        },
+        {
+          "name": "keyword.operator.arithmetic.almide",
+          "match": "[+\\-*/%^]"
+        }
+      ]
+    },
+    "identifier": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.almide",
+          "match": "\\b(println|eprintln|assert_eq|assert_ne|assert|unwrap_or)\\b"
+        },
+        {
+          "name": "support.module.almide",
+          "match": "\\b(string|list|map|int|float|fs|env|process|io|json|math|random|regex|time|path|encoding|args)\\b(?=\\.)"
+        },
+        {
+          "name": "entity.name.function.predicate.almide",
+          "match": "\\b[a-z_][a-zA-Z0-9_]*\\?"
+        },
+        {
+          "name": "variable.other.almide",
+          "match": "\\b[a-z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}

@@ -26,7 +26,7 @@
       {
         "language": "almide",
         "scopeName": "source.almide",
-        "path": "../grammar/almide.tmLanguage.json"
+        "path": "./syntaxes/almide.tmLanguage.json"
       }
     ]
   }
