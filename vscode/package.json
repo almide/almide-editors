@@ -1,0 +1,33 @@
+{
+  "name": "almide-lang",
+  "displayName": "Almide",
+  "description": "Syntax highlighting for the Almide programming language (.almd)",
+  "version": "0.1.0",
+  "publisher": "almide",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/almide/almide-editors"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Programming Languages"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "almide",
+        "aliases": ["Almide", "almide"],
+        "extensions": [".almd"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "almide",
+        "scopeName": "source.almide",
+        "path": "../grammar/almide.tmLanguage.json"
+      }
+    ]
+  }
+}
