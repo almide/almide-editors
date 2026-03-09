@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Almide Highlight for GitHub",
-  "description": "Syntax highlighting for .almd files on GitHub",
+  "name": "Almide Highlight",
+  "description": "Syntax highlighting for Almide code blocks and .almd files",
   "version": "0.1.0",
   "permissions": [],
   "content_scripts": [
     {
-      "matches": ["https://github.com/*"],
+      "matches": ["<all_urls>"],
       "js": ["content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"

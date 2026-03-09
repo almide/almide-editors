@@ -18,20 +18,90 @@ async function initHighlighter() {
   return highlighter;
 }
 
-function isAlmdFile() {
-  return window.location.pathname.endsWith('.almd');
+function isDarkMode() {
+  // GitHub-specific
+  const mode = document.documentElement.getAttribute('data-color-mode');
+  if (mode === 'dark') return true;
+  if (mode === 'light') return false;
+  // Fallback to system preference
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
 function getThemeName() {
-  const html = document.documentElement;
-  const mode = html.getAttribute('data-color-mode');
-  if (mode === 'dark') return 'github-dark';
-  if (mode === 'auto') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'github-dark'
-      : 'github-light';
-  }
-  return 'github-light';
+  return isDarkMode() ? 'github-dark' : 'github-light';
+}
+
+// --- Code block highlighting (any website) ---
+
+function findAlmideCodeBlocks() {
+  const blocks = [];
+  // Common patterns: <code class="language-almide">, <code class="language-almd">
+  // Also: <pre lang="almide">, highlight-source-almide (GitHub)
+  const codeEls = document.querySelectorAll(
+    'code[class*="language-almide"], code[class*="language-almd"], ' +
+    'code[class*="highlight-source-almide"], ' +
+    'pre[lang="almide"], pre[lang="almd"]'
+  );
+
+  codeEls.forEach(el => {
+    if (el.getAttribute('data-almide-done') === 'true') return;
+    const codeEl = el.tagName === 'PRE' ? el.querySelector('code') || el : el;
+    blocks.push(codeEl);
+  });
+
+  return blocks;
+}
+
+function tokensToHtml(tokens) {
+  return tokens.map(token => {
+    const escaped = token.content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    if (token.color) {
+      return `<span style="color:${token.color}">${escaped}</span>`;
+    }
+    return escaped;
+  }).join('');
+}
+
+async function highlightCodeBlocks() {
+  const blocks = findAlmideCodeBlocks();
+  if (blocks.length === 0) return;
+
+  const hl = await initHighlighter();
+  const themeName = getThemeName();
+
+  blocks.forEach(codeEl => {
+    const code = codeEl.textContent;
+    if (!code.trim()) return;
+
+    try {
+      const tokens = hl.codeToTokens(code, {
+        lang: 'almide',
+        theme: themeName,
+      });
+
+      const html = tokens.tokens
+        .map(line => tokensToHtml(line))
+        .join('\n');
+
+      codeEl.innerHTML = html;
+      codeEl.setAttribute('data-almide-done', 'true');
+    } catch (e) {
+      console.error('[Almide] Code block error:', e);
+    }
+  });
+
+  console.log(`[Almide] Highlighted ${blocks.length} code block(s)`);
+}
+
+// --- GitHub .almd file highlighting ---
+
+function isGitHubAlmdFile() {
+  return location.hostname === 'github.com' &&
+    window.location.pathname.endsWith('.almd') &&
+    window.location.pathname.includes('/blob/');
 }
 
 async function fetchRawCode() {
@@ -41,10 +111,10 @@ async function fetchRawCode() {
   return res.text();
 }
 
-async function run() {
-  if (!isAlmdFile()) return;
-  if (document.body.getAttribute('data-almide-highlighted') === 'true') return;
-  document.body.setAttribute('data-almide-highlighted', 'true');
+async function highlightGitHubFile() {
+  if (!isGitHubAlmdFile()) return;
+  if (document.body.getAttribute('data-almide-file-done') === 'true') return;
+  document.body.setAttribute('data-almide-file-done', 'true');
 
   try {
     const [hl, code] = await Promise.all([initHighlighter(), fetchRawCode()]);
@@ -55,15 +125,11 @@ async function run() {
       theme: themeName,
     });
 
-    // Find the per-line code divs (GitHub's react code view)
     const lineDivs = document.querySelectorAll(
       '.react-code-lines .react-code-line-contents-no-virtualization'
     );
 
-    if (lineDivs.length === 0) {
-      console.log('[Almide] No line divs found');
-      return;
-    }
+    if (lineDivs.length === 0) return;
 
     lineDivs.forEach((lineEl, i) => {
       if (i >= tokens.tokens.length) return;
@@ -72,37 +138,46 @@ async function run() {
         lineEl.innerHTML = '\n';
         return;
       }
-
-      const html = lineTokens.map(token => {
-        const escaped = token.content
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;');
-        if (token.color) {
-          return `<span style="color:${token.color}">${escaped}</span>`;
-        }
-        return escaped;
-      }).join('');
-
-      lineEl.innerHTML = html;
+      lineEl.innerHTML = tokensToHtml(lineTokens);
     });
 
-    console.log(`[Almide] Highlighted ${lineDivs.length} lines with ${themeName}`);
+    console.log(`[Almide] Highlighted file: ${lineDivs.length} lines`);
   } catch (e) {
-    console.error('[Almide] Error:', e);
-    document.body.removeAttribute('data-almide-highlighted');
+    console.error('[Almide] File highlight error:', e);
+    document.body.removeAttribute('data-almide-file-done');
   }
 }
 
-// Initial run (wait for GitHub to finish rendering)
+// --- Entry point ---
+
+async function run() {
+  await Promise.all([
+    highlightCodeBlocks(),
+    highlightGitHubFile(),
+  ]);
+}
+
+// Initial run
 setTimeout(run, 500);
 
-// Handle GitHub SPA navigation by detecting URL changes
+// Handle SPA navigation (GitHub) + dynamic content loading
 let lastUrl = location.href;
+let debounceTimer = null;
+
 new MutationObserver(() => {
+  // URL changed (SPA navigation)
   if (location.href !== lastUrl) {
     lastUrl = location.href;
-    document.body.removeAttribute('data-almide-highlighted');
-    setTimeout(run, 500);
+    document.body.removeAttribute('data-almide-file-done');
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(run, 500);
+    return;
   }
+  // Debounce code block scanning
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    if (findAlmideCodeBlocks().length > 0) {
+      highlightCodeBlocks();
+    }
+  }, 300);
 }).observe(document.body, { childList: true, subtree: true });
