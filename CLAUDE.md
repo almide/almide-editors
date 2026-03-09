@@ -2,11 +2,24 @@
 
 Editor integrations for the Almide programming language (.almd).
 
+## Branch Strategy
+
+- **main** — protected. Never commit directly. Only accepts PRs from `develop`
+- **develop** — the working branch. All commits go here
+- Always confirm `git branch` before committing
+- Push to main triggers CI release (`.vsix` + Chrome zip → GitHub Releases)
+
+## Git Commit Rules
+
+- Write commit messages in **English only**
+- No prefix (feat:, fix:, etc.)
+- Keep it to one concise line
+
 ## Structure
 
 - `grammar/` - Shared TextMate grammar (`almide.tmLanguage.json`)
 - `vscode/` - VS Code extension ("Almide")
-- `chrome/` - Chrome extension ("Almide Highlight for GitHub")
+- `chrome/` - Chrome extension ("Almide Highlight")
 
 ## Grammar
 
@@ -18,10 +31,8 @@ The TextMate grammar in `grammar/` is the single source of truth. Both extension
 
 ```bash
 cd vscode
-# Package
 npx vsce package
-# Publish (requires Azure DevOps PAT)
-npx vsce publish
+code --install-extension almide-lang-*.vsix
 ```
 
 ## Chrome Extension
@@ -34,10 +45,11 @@ node build.mjs    # outputs to dist/
 
 Load `chrome/dist/` as unpacked extension in `chrome://extensions`.
 
-Uses Shiki (with JS regex engine) to highlight .almd files on GitHub.
-Fetches raw source via `/raw/` URL and tokenizes with the shared grammar.
+## CI / Release
 
-## Publishing
+GitHub Actions (`.github/workflows/release.yml`) runs on push to main:
+1. Builds `.vsix` (VS Code extension)
+2. Builds `chrome-extension.zip` (Chrome extension)
+3. Creates GitHub Release with version from `vscode/package.json`
 
-- VS Code Marketplace: publisher `almide`, package `almide-lang`
-- Chrome Web Store: developer registration ($5), upload dist/ as zip
+To bump version: update `version` in `vscode/package.json` and `chrome/manifest.json`.
