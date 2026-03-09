@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Build VS Code extension
+      - name: Copy grammar to vscode/syntaxes
+        run: cp grammar/almide.tmLanguage.json vscode/syntaxes/almide.tmLanguage.json
+
+      - name: Package vsix
+        run: |
+          npm install -g @vscode/vsce
+          cd vscode
+          vsce package
+
+      # Build Chrome extension
+      - name: Build Chrome extension
+        run: |
+          cd chrome
+          npm ci
+          node build.mjs
+          cd dist && zip -r ../../chrome-extension.zip . && cd ..
+
+      # Get version from package.json
+      - name: Get version
+        id: version
+        run: echo "version=$(node -p "require('./vscode/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # Create or update release
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          files: |
+            vscode/*.vsix
+            chrome-extension.zip
+          make_latest: true
