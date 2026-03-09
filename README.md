@@ -7,12 +7,22 @@ Editor support for the [Almide](https://github.com/almide/almide) programming la
 ```
 grammar/        TextMate grammar (shared by all editors)
 vscode/         VS Code extension
-chrome/         Chrome extension for GitHub highlighting (planned)
+chrome/         Chrome extension for syntax highlighting
 ```
 
-## VS Code Extension
+## VS Code Extension — "Almide"
 
-### Install from source
+Syntax highlighting for `.almd` files in VS Code.
+
+### Install
+
+Download the latest `.vsix` from [Releases](https://github.com/almide/almide-editors/releases), then:
+
+```bash
+code --install-extension almide-lang-0.1.0.vsix
+```
+
+### Build from source
 
 ```bash
 cd vscode
@@ -27,6 +37,26 @@ code --install-extension almide-lang-0.1.0.vsix
 - Bracket matching and auto-closing
 - Comment toggling (`//` and `(* *)`)
 - Code folding
+
+## Chrome Extension — "Almide Highlight"
+
+Syntax highlighting for Almide on the web.
+
+- `.almd` files on GitHub (blob view)
+- `` ```almide `` / `` ```almd `` fenced code blocks on any website
+- Light / dark theme support (based on system preference or GitHub setting)
+
+### Install
+
+1. Clone this repo
+2. Build the extension:
+   ```bash
+   cd chrome
+   npm install
+   node build.mjs
+   ```
+3. Open `chrome://extensions` → Enable "Developer mode"
+4. Click "Load unpacked" → Select the `chrome/dist/` directory
 
 ## TextMate Grammar
 
