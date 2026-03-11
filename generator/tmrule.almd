@@ -2,10 +2,10 @@
 // Models the tmLanguage.json structure as algebraic data types
 
 type Pat =
-  | Match(String, String)
-  | MatchCap(String, String, List[(String, String)])
-  | BeginEnd(String, String, String, List[Pat])
-  | BeginEndCap(String, String, String, String, String, String, List[Pat])
+  | Match { scope: String, regex: String }
+  | MatchCap { scope: String, regex: String, captures: List[(String, String)] }
+  | BeginEnd { scope: String, begin: String, end: String, patterns: List[Pat] }
+  | BeginEndCap { scope: String, begin: String, end: String, begin_cap: String, end_cap: String, content_name: String, patterns: List[Pat] }
   | Include(String)
 
 // JSON helpers
@@ -31,10 +31,10 @@ fn json_arr_inline(items: List[String]) -> String =
 // Emit a pattern to JSON
 
 fn emit_pat(pat: Pat) -> String = match pat {
-  Match(scope, regex) =>
+  Match { scope, regex } =>
     json_obj([("name", q(scope)), ("match", q(regex))])
 
-  MatchCap(scope, regex, captures) => {
+  MatchCap { scope, regex, captures } => {
     let cap_entries = list.map(captures, fn(c) => {
       let (group, cap_scope) = c
       "${q(group)}: ${json_obj([("name", q(cap_scope))])}"
@@ -43,14 +43,14 @@ fn emit_pat(pat: Pat) -> String = match pat {
     json_obj([("name", q(scope)), ("match", q(regex)), ("captures", caps)])
   }
 
-  BeginEnd(scope, begin, end_pat, pats) => {
-    let sub = json_arr_inline(list.map(pats, fn(p) => emit_pat(p)))
-    json_obj([("name", q(scope)), ("begin", q(begin)), ("end", q(end_pat)), ("patterns", sub)])
+  BeginEnd { scope, begin, end, patterns } => {
+    let sub = json_arr_inline(list.map(patterns, fn(p) => emit_pat(p)))
+    json_obj([("name", q(scope)), ("begin", q(begin)), ("end", q(end)), ("patterns", sub)])
   }
 
-  BeginEndCap(scope, begin, end_pat, begin_cap, end_cap, content_name, pats) => {
-    let sub = json_arr_inline(list.map(pats, fn(p) => emit_pat(p)))
-    let pairs = [("name", q(scope)), ("begin", q(begin)), ("end", q(end_pat))]
+  BeginEndCap { scope, begin, end, begin_cap, end_cap, content_name, patterns } => {
+    let sub = json_arr_inline(list.map(patterns, fn(p) => emit_pat(p)))
+    let pairs = [("name", q(scope)), ("begin", q(begin)), ("end", q(end))]
     let pairs = if begin_cap != "" then
       pairs ++ [("beginCaptures", "{ \"0\": ${json_obj([("name", q(begin_cap))])} }")]
     else pairs

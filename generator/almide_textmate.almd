@@ -22,29 +22,29 @@ pub fn top_patterns() -> List[Pat] = [
 fn comment() -> RepoEntry = {
   name: "comment",
   patterns: [
-    Match("comment.line.double-slash.almide", "//.*$"),
-    BeginEnd("comment.block.almide", "\\(\\*", "\\*\\)", [])
+    Match { scope: "comment.line.double-slash.almide", regex: "//.*$" },
+    BeginEnd { scope: "comment.block.almide", begin: "\\(\\*", end: "\\*\\)", patterns: [] }
   ]
 }
 
 fn string_interpolation() -> SingleEntry = {
   name: "string-interpolation",
-  pat: BeginEndCap(
-    "meta.interpolation.almide",
-    "\\$\\{", "\\}",
-    "punctuation.section.interpolation.begin.almide",
-    "punctuation.section.interpolation.end.almide",
-    "source.almide.embedded",
-    [Include("source.almide")]
-  )
+  pat: BeginEndCap {
+    scope: "meta.interpolation.almide",
+    begin: "\\$\\{", end: "\\}",
+    begin_cap: "punctuation.section.interpolation.begin.almide",
+    end_cap: "punctuation.section.interpolation.end.almide",
+    content_name: "source.almide.embedded",
+    patterns: [Include("source.almide")]
+  }
 }
 
 fn string_escape() -> SingleEntry = {
   name: "string-escape",
-  pat: Match(
-    "constant.character.escape.almide",
-    "\\\\[ntr0\\\\\"$]|\\\\u\\{[0-9a-fA-F]+\\}"
-  )
+  pat: Match {
+    scope: "constant.character.escape.almide",
+    regex: "\\\\[ntr0\\\\\"$]|\\\\u\\{[0-9a-fA-F]+\\}"
+  }
 }
 
 fn string_patterns() -> RepoEntry = {
@@ -52,17 +52,17 @@ fn string_patterns() -> RepoEntry = {
   {
     name: "string",
     patterns: [
-      BeginEnd("string.quoted.triple.almide", "r\"\"\"", "\"\"\"", []),
-      BeginEnd("string.quoted.triple.almide", "\"\"\"", "\"\"\"", interp),
-      BeginEnd("string.quoted.double.raw.almide", "r\"", "\"", []),
-      BeginEndCap(
-        "string.quoted.double.almide",
-        "\"", "\"",
-        "punctuation.definition.string.begin.almide",
-        "punctuation.definition.string.end.almide",
-        "",
-        interp
-      )
+      BeginEnd { scope: "string.quoted.triple.almide", begin: "r\"\"\"", end: "\"\"\"", patterns: [] },
+      BeginEnd { scope: "string.quoted.triple.almide", begin: "\"\"\"", end: "\"\"\"", patterns: interp },
+      BeginEnd { scope: "string.quoted.double.raw.almide", begin: "r\"", end: "\"", patterns: [] },
+      BeginEndCap {
+        scope: "string.quoted.double.almide",
+        begin: "\"", end: "\"",
+        begin_cap: "punctuation.definition.string.begin.almide",
+        end_cap: "punctuation.definition.string.end.almide",
+        content_name: "",
+        patterns: interp
+      }
     ]
   }
 }
@@ -70,86 +70,86 @@ fn string_patterns() -> RepoEntry = {
 fn number() -> RepoEntry = {
   name: "number",
   patterns: [
-    Match("constant.numeric.hex.almide", "\\b0x[0-9a-fA-F_]+\\b"),
-    Match("constant.numeric.binary.almide", "\\b0b[01_]+\\b"),
-    Match("constant.numeric.octal.almide", "\\b0o[0-7_]+\\b"),
-    Match("constant.numeric.float.almide", "\\b[0-9][0-9_]*\\.[0-9][0-9_]*([eE][+-]?[0-9_]+)?\\b"),
-    Match("constant.numeric.scientific.almide", "\\b[0-9][0-9_]*[eE][+-]?[0-9_]+\\b"),
-    Match("constant.numeric.integer.almide", "\\b[0-9][0-9_]*\\b")
+    Match { scope: "constant.numeric.hex.almide", regex: "\\b0x[0-9a-fA-F_]+\\b" },
+    Match { scope: "constant.numeric.binary.almide", regex: "\\b0b[01_]+\\b" },
+    Match { scope: "constant.numeric.octal.almide", regex: "\\b0o[0-7_]+\\b" },
+    Match { scope: "constant.numeric.float.almide", regex: "\\b[0-9][0-9_]*\\.[0-9][0-9_]*([eE][+-]?[0-9_]+)?\\b" },
+    Match { scope: "constant.numeric.scientific.almide", regex: "\\b[0-9][0-9_]*[eE][+-]?[0-9_]+\\b" },
+    Match { scope: "constant.numeric.integer.almide", regex: "\\b[0-9][0-9_]*\\b" }
   ]
 }
 
 fn keyword() -> RepoEntry = {
   name: "keyword",
   patterns: [
-    Match("keyword.control.almide",
-      "\\b(if|then|else|match|for|in|do|guard|try|await|return)\\b"),
-    Match("keyword.declaration.almide",
-      "\\b(fn|let|var|type|trait|impl|module|import|test|deriving|newtype|effect|async|extern)\\b"),
-    Match("keyword.modifier.almide",
-      "\\b(pub|local|mod|strict)\\b"),
-    Match("keyword.operator.logical.almide",
-      "\\b(and|or|not)\\b"),
-    Match("keyword.other.annotation.almide",
-      "@extern")
+    Match { scope: "keyword.control.almide",
+      regex: "\\b(if|then|else|match|for|in|do|guard|try|await|return)\\b" },
+    Match { scope: "keyword.declaration.almide",
+      regex: "\\b(fn|let|var|type|trait|impl|module|import|test|deriving|newtype|effect|async|extern)\\b" },
+    Match { scope: "keyword.modifier.almide",
+      regex: "\\b(pub|local|mod|strict)\\b" },
+    Match { scope: "keyword.operator.logical.almide",
+      regex: "\\b(and|or|not)\\b" },
+    Match { scope: "keyword.other.annotation.almide",
+      regex: "@extern" }
   ]
 }
 
 fn constant() -> RepoEntry = {
   name: "constant",
   patterns: [
-    Match("constant.language.boolean.almide", "\\b(true|false)\\b"),
-    Match("constant.language.option.almide", "\\b(some|none|Some|None)\\b"),
-    Match("constant.language.result.almide", "\\b(ok|err|Ok|Err)\\b"),
-    Match("keyword.other.todo.almide", "\\b(todo)\\b")
+    Match { scope: "constant.language.boolean.almide", regex: "\\b(true|false)\\b" },
+    Match { scope: "constant.language.option.almide", regex: "\\b(some|none|Some|None)\\b" },
+    Match { scope: "constant.language.result.almide", regex: "\\b(ok|err|Ok|Err)\\b" },
+    Match { scope: "keyword.other.todo.almide", regex: "\\b(todo)\\b" }
   ]
 }
 
 fn type_patterns() -> RepoEntry = {
   name: "type",
   patterns: [
-    Match("support.type.builtin.almide",
-      "\\b(Int|Float|String|Bool|Unit|Path|List|Map|Set|Option|Result|Json|IoError)\\b"),
-    Match("entity.name.type.almide",
-      "\\b[A-Z][a-zA-Z0-9_]*\\b")
+    Match { scope: "support.type.builtin.almide",
+      regex: "\\b(Int|Float|String|Bool|Unit|Path|List|Map|Set|Option|Result|Json|IoError)\\b" },
+    Match { scope: "entity.name.type.almide",
+      regex: "\\b[A-Z][a-zA-Z0-9_]*\\b" }
   ]
 }
 
 fn function_def() -> SingleEntry = {
   name: "function-def",
-  pat: MatchCap(
-    "meta.function.almide",
-    "\\b(fn)\\s+([a-z_][a-zA-Z0-9_]*\\??)",
-    [("1", "keyword.declaration.almide"), ("2", "entity.name.function.almide")]
-  )
+  pat: MatchCap {
+    scope: "meta.function.almide",
+    regex: "\\b(fn)\\s+([a-z_][a-zA-Z0-9_]*\\??)",
+    captures: [("1", "keyword.declaration.almide"), ("2", "entity.name.function.almide")]
+  }
 }
 
 fn operator() -> RepoEntry = {
   name: "operator",
   patterns: [
-    Match("keyword.operator.arrow.almide", "->|=>"),
-    Match("keyword.operator.pipe.almide", "\\|>"),
-    Match("keyword.operator.concat.almide", "\\+\\+"),
-    Match("keyword.operator.range.almide", "\\.\\.\\.|\\.\\.\\.=|\\.\\."),
-    Match("keyword.operator.comparison.almide", "==|!=|<=|>="),
-    Match("keyword.operator.assignment.almide", "="),
-    Match("keyword.operator.arithmetic.almide", "[+\\-*/%^]")
+    Match { scope: "keyword.operator.arrow.almide", regex: "->|=>" },
+    Match { scope: "keyword.operator.pipe.almide", regex: "\\|>" },
+    Match { scope: "keyword.operator.concat.almide", regex: "\\+\\+" },
+    Match { scope: "keyword.operator.range.almide", regex: "\\.\\.\\.|\\.\\.\\.=|\\.\\."},
+    Match { scope: "keyword.operator.comparison.almide", regex: "==|!=|<=|>=" },
+    Match { scope: "keyword.operator.assignment.almide", regex: "=" },
+    Match { scope: "keyword.operator.arithmetic.almide", regex: "[+\\-*/%^]" }
   ]
 }
 
 fn identifier() -> RepoEntry = {
   name: "identifier",
   patterns: [
-    Match("support.function.builtin.almide",
-      "\\b(println|eprintln|assert_eq|assert_ne|assert|unwrap_or)\\b"),
-    Match("support.module.almide",
-      "\\b(string|list|map|int|float|fs|env|process|io|json|math|random|regex|time|path|encoding|args|hash|term|http)\\b(?=\\.)"),
-    Match("variable.language.almide",
-      "\\b(self|_)\\b"),
-    Match("entity.name.function.predicate.almide",
-      "\\b[a-z_][a-zA-Z0-9_]*\\?"),
-    Match("variable.other.almide",
-      "\\b[a-z_][a-zA-Z0-9_]*\\b")
+    Match { scope: "support.function.builtin.almide",
+      regex: "\\b(println|eprintln|assert_eq|assert_ne|assert|unwrap_or)\\b" },
+    Match { scope: "support.module.almide",
+      regex: "\\b(string|list|map|int|float|fs|env|process|io|json|math|random|regex|time|path|encoding|args|hash|term|http)\\b(?=\\.)" },
+    Match { scope: "variable.language.almide",
+      regex: "\\b(self|_)\\b" },
+    Match { scope: "entity.name.function.predicate.almide",
+      regex: "\\b[a-z_][a-zA-Z0-9_]*\\?" },
+    Match { scope: "variable.other.almide",
+      regex: "\\b[a-z_][a-zA-Z0-9_]*\\b" }
   ]
 }
 
