@@ -6,7 +6,7 @@
   "publisher": "almide",
   "repository": {
     "type": "git",
-    "url": "https://github.com/almide/almide-editors"
+    "url": "https://github.com/almide/vscode-almide"
   },
   "license": "MIT",
   "engines": {

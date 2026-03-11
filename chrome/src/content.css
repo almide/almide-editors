@@ -1,7 +1,0 @@
-/* Ensure highlighted spans don't break GitHub's layout */
-td.blob-code-inner span,
-[class*="react-code-text"] span {
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-}
