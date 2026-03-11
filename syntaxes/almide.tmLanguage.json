@@ -7,8 +7,10 @@
     { "include": "#comment" },
     { "include": "#string" },
     { "include": "#number" },
+    { "include": "#annotation" },
     { "include": "#keyword" },
     { "include": "#type" },
+    { "include": "#test-block" },
     { "include": "#function-def" },
     { "include": "#constant" },
     { "include": "#operator" },
@@ -20,18 +22,13 @@
         {
           "name": "comment.line.double-slash.almide",
           "match": "//.*$"
-        },
-        {
-          "name": "comment.block.almide",
-          "begin": "\\(\\*",
-          "end": "\\*\\)"
         }
       ]
     },
     "string": {
       "patterns": [
         {
-          "name": "string.quoted.triple.almide",
+          "name": "string.quoted.triple.raw.almide",
           "begin": "r\"\"\"",
           "end": "\"\"\"",
           "patterns": []
@@ -77,19 +74,43 @@
     },
     "string-escape": {
       "name": "constant.character.escape.almide",
-      "match": "\\\\[ntr\\\\\"$]"
+      "match": "\\\\([ntr0\\\\\"$]|u\\{[0-9a-fA-F]{1,6}\\})"
     },
     "number": {
       "patterns": [
         {
+          "name": "constant.numeric.hex.almide",
+          "match": "\\b0[xX][0-9a-fA-F][0-9a-fA-F_]*\\b"
+        },
+        {
+          "name": "constant.numeric.binary.almide",
+          "match": "\\b0[bB][01][01_]*\\b"
+        },
+        {
+          "name": "constant.numeric.octal.almide",
+          "match": "\\b0[oO][0-7][0-7_]*\\b"
+        },
+        {
           "name": "constant.numeric.float.almide",
-          "match": "\\b[0-9]+\\.[0-9]+\\b"
+          "match": "\\b[0-9][0-9_]*\\.[0-9][0-9_]*([eE][+-]?[0-9][0-9_]*)?\\b"
+        },
+        {
+          "name": "constant.numeric.float.scientific.almide",
+          "match": "\\b[0-9][0-9_]*[eE][+-]?[0-9][0-9_]*\\b"
         },
         {
           "name": "constant.numeric.integer.almide",
-          "match": "\\b[0-9]+\\b"
+          "match": "\\b[0-9][0-9_]*\\b"
         }
       ]
+    },
+    "annotation": {
+      "name": "meta.annotation.almide",
+      "match": "(@)(extern)\\b",
+      "captures": {
+        "1": { "name": "punctuation.definition.annotation.almide" },
+        "2": { "name": "storage.type.annotation.almide" }
+      }
     },
     "keyword": {
       "patterns": [
@@ -99,11 +120,11 @@
         },
         {
           "name": "keyword.declaration.almide",
-          "match": "\\b(fn|let|var|type|trait|impl|module|import|test|deriving|newtype|effect|async|extern)\\b"
+          "match": "\\b(fn|let|var|type|trait|impl|module|import|test|deriving|newtype|effect|async)\\b"
         },
         {
           "name": "keyword.modifier.almide",
-          "match": "\\b(pub|local|mod|strict|unsafe)\\b"
+          "match": "\\b(pub|local|mod|strict)\\b"
         },
         {
           "name": "keyword.operator.logical.almide",
@@ -127,7 +148,15 @@
         },
         {
           "name": "keyword.other.todo.almide",
-          "match": "\\b(todo)\\b"
+          "match": "\\btodo\\b"
+        },
+        {
+          "name": "variable.language.wildcard.almide",
+          "match": "\\b_\\b"
+        },
+        {
+          "name": "variable.language.self.almide",
+          "match": "\\bself\\b"
         }
       ]
     },
@@ -135,13 +164,21 @@
       "patterns": [
         {
           "name": "support.type.builtin.almide",
-          "match": "\\b(Int|Float|String|Bool|Unit|Path|List|Map|Set|Option|Result|Json|IoError)\\b"
+          "match": "\\b(Int|Float|String|Bool|Unit|Path|List|Map|Set|Option|Result|Json|IoError|Bytes)\\b"
         },
         {
           "name": "entity.name.type.almide",
           "match": "\\b[A-Z][a-zA-Z0-9_]*\\b"
         }
       ]
+    },
+    "test-block": {
+      "name": "meta.test.almide",
+      "match": "\\b(test)\\s+(\"[^\"]*\")",
+      "captures": {
+        "1": { "name": "keyword.declaration.almide" },
+        "2": { "name": "string.quoted.double.almide" }
+      }
     },
     "function-def": {
       "name": "meta.function.almide",
@@ -166,8 +203,12 @@
           "match": "\\+\\+"
         },
         {
+          "name": "keyword.operator.spread.almide",
+          "match": "\\.\\.\\."
+        },
+        {
           "name": "keyword.operator.range.almide",
-          "match": "\\.\\.\\.|\\.\\.\\.=|\\.\\."
+          "match": "\\.\\.=|\\.\\."
         },
         {
           "name": "keyword.operator.comparison.almide",
@@ -191,7 +232,7 @@
         },
         {
           "name": "support.module.almide",
-          "match": "\\b(string|list|map|int|float|fs|env|process|io|json|math|random|regex|time|path|encoding|args)\\b(?=\\.)"
+          "match": "\\b(string|list|map|int|float|fs|env|process|io|json|math|random|regex|time|path|encoding|args|http|hash|term)\\b(?=\\.)"
         },
         {
           "name": "entity.name.function.predicate.almide",
