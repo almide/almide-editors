@@ -1,3 +1,4 @@
 *.vsix
 node_modules/
 chrome/dist/
+generator/gen-textmate

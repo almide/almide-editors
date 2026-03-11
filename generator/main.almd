@@ -1,0 +1,33 @@
+// TextMate grammar generator for Almide
+// Written in Almide — generates almide.tmLanguage.json from pattern definitions
+
+import tmrule
+import almide_textmate
+
+fn main() -> Unit = {
+  let top = string.join(
+    list.map(almide_textmate.top_patterns(), fn(p) => "    ${tmrule.emit_pat(p)}"),
+    ",\n"
+  )
+
+  let repo_parts = list.map(almide_textmate.repo_entries(), fn(e) => tmrule.emit_repo_entry(e))
+  let single_parts = list.map(almide_textmate.single_entries(), fn(e) => tmrule.emit_single_entry(e))
+  let all_repo = string.join(repo_parts ++ single_parts, ",\n")
+
+  let output = """
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Almide",
+  "scopeName": "source.almide",
+  "fileTypes": ["almd"],
+  "patterns": [
+${top}
+  ],
+  "repository": {
+${all_repo}
+  }
+}
+"""
+
+  println(output)
+}

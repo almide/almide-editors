@@ -1,0 +1,90 @@
+// TextMate grammar pattern types and JSON emitter
+// Models the tmLanguage.json structure as algebraic data types
+
+type Pat =
+  | Match(String, String)
+  | MatchCap(String, String, List[(String, String)])
+  | BeginEnd(String, String, String, List[Pat])
+  | BeginEndCap(String, String, String, String, String, String, List[Pat])
+  | Include(String)
+
+// JSON helpers
+
+fn json_escape(s: String) -> String =
+  s
+  |> string.replace("\\", "\\\\")
+  |> string.replace("\"", "\\\"")
+
+fn q(s: String) -> String = "\"${json_escape(s)}\""
+
+fn json_obj(pairs: List[(String, String)]) -> String = {
+  let entries = list.map(pairs, fn(p) => {
+    let (k, v) = p
+    "${q(k)}: ${v}"
+  })
+  "{ ${string.join(entries, ", ")} }"
+}
+
+fn json_arr_inline(items: List[String]) -> String =
+  "[${string.join(items, ", ")}]"
+
+// Emit a pattern to JSON
+
+fn emit_pat(pat: Pat) -> String = match pat {
+  Match(scope, regex) =>
+    json_obj([("name", q(scope)), ("match", q(regex))])
+
+  MatchCap(scope, regex, captures) => {
+    let cap_entries = list.map(captures, fn(c) => {
+      let (group, cap_scope) = c
+      "${q(group)}: ${json_obj([("name", q(cap_scope))])}"
+    })
+    let caps = "{ ${string.join(cap_entries, ", ")} }"
+    json_obj([("name", q(scope)), ("match", q(regex)), ("captures", caps)])
+  }
+
+  BeginEnd(scope, begin, end_pat, pats) => {
+    let sub = json_arr_inline(list.map(pats, fn(p) => emit_pat(p)))
+    json_obj([("name", q(scope)), ("begin", q(begin)), ("end", q(end_pat)), ("patterns", sub)])
+  }
+
+  BeginEndCap(scope, begin, end_pat, begin_cap, end_cap, content_name, pats) => {
+    let sub = json_arr_inline(list.map(pats, fn(p) => emit_pat(p)))
+    let pairs = [("name", q(scope)), ("begin", q(begin)), ("end", q(end_pat))]
+    let pairs = if begin_cap != "" then
+      pairs ++ [("beginCaptures", "{ \"0\": ${json_obj([("name", q(begin_cap))])} }")]
+    else pairs
+    let pairs = if end_cap != "" then
+      pairs ++ [("endCaptures", "{ \"0\": ${json_obj([("name", q(end_cap))])} }")]
+    else pairs
+    let pairs = if content_name != "" then
+      pairs ++ [("contentName", q(content_name))]
+    else pairs
+    let pairs = pairs ++ [("patterns", sub)]
+    json_obj(pairs)
+  }
+
+  Include(r) =>
+    json_obj([("include", q(r))])
+}
+
+// Repository entry types
+
+type RepoEntry = { name: String, patterns: List[Pat] }
+
+fn emit_repo_entry(entry: RepoEntry) -> String = {
+  let pats = string.join(
+    list.map(entry.patterns, fn(p) => "        ${emit_pat(p)}"),
+    ",\n"
+  )
+  """    "${entry.name}": {
+      "patterns": [
+${pats}
+      ]
+    }"""
+}
+
+type SingleEntry = { name: String, pat: Pat }
+
+fn emit_single_entry(entry: SingleEntry) -> String =
+  "    ${q(entry.name)}: ${emit_pat(entry.pat)}"
