@@ -1,7 +1,9 @@
 // TextMate grammar rules for Almide
 // All patterns defined as data — emitted to JSON by main.almd
+// Keywords sourced from almide-grammar (single source of truth)
 
 import tmrule
+import almide_grammar
 
 // --- Top-level includes ---
 
@@ -80,29 +82,31 @@ fn number() -> RepoEntry = {
 }
 
 fn keyword() -> RepoEntry = {
-  name: "keyword",
-  patterns: [
-    Match { scope: "keyword.control.almide",
-      regex: "\\b(if|then|else|match|for|in|do|guard|try|await|return)\\b" },
-    Match { scope: "keyword.declaration.almide",
-      regex: "\\b(fn|let|var|type|trait|impl|module|import|test|deriving|newtype|effect|async|extern)\\b" },
-    Match { scope: "keyword.modifier.almide",
-      regex: "\\b(pub|local|mod|strict)\\b" },
-    Match { scope: "keyword.operator.logical.almide",
-      regex: "\\b(and|or|not)\\b" },
-    Match { scope: "keyword.other.annotation.almide",
-      regex: "@extern" }
-  ]
+  // Keywords from almide-grammar (single source of truth)
+  var patterns: List[Pat] = []
+  for group in almide_grammar.keyword_groups() {
+    let regex = "\\b(" ++ string.join(group.words, "|") ++ ")\\b"
+    patterns = patterns ++ [Match { scope: group.scope, regex: regex }]
+  }
+  // Annotation (not in almide-grammar — editor-specific)
+  patterns = patterns ++ [Match { scope: "keyword.other.annotation.almide", regex: "@extern" }]
+  { name: "keyword", patterns: patterns }
 }
 
 fn constant() -> RepoEntry = {
-  name: "constant",
-  patterns: [
-    Match { scope: "constant.language.boolean.almide", regex: "\\b(true|false)\\b" },
-    Match { scope: "constant.language.option.almide", regex: "\\b(some|none|Some|None)\\b" },
-    Match { scope: "constant.language.result.almide", regex: "\\b(ok|err|Ok|Err)\\b" },
-    Match { scope: "keyword.other.todo.almide", regex: "\\b(todo)\\b" }
-  ]
+  // Aliases (Ok, Err, Some, None) from almide-grammar
+  let alias_names = list.map(almide_grammar.keyword_aliases(), fn(p) => p.0)
+  let alias_regex = "\\b(" ++ string.join(alias_names, "|") ++ ")\\b"
+  {
+    name: "constant",
+    patterns: [
+      Match { scope: "constant.language.boolean.almide", regex: "\\b(true|false)\\b" },
+      Match { scope: "constant.language.option.almide", regex: "\\b(some|none)\\b" },
+      Match { scope: "constant.language.result.almide", regex: "\\b(ok|err)\\b" },
+      Match { scope: "constant.language.almide", regex: alias_regex },
+      Match { scope: "keyword.other.todo.almide", regex: "\\b(todo)\\b" }
+    ]
+  }
 }
 
 fn type_patterns() -> RepoEntry = {
